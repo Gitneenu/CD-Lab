@@ -1,0 +1,130 @@
+LEX CODE
+%{
+#include "y.tab.h"
+#include <stdlib.h>
+%}
+
+%%
+[0-9]+ {
+    yylval.num = atoi(yytext);
+    return NUM;
+}
+
+[ \t] ;
+\n return '\n';
+. return yytext[0];
+%%
+
+int yywrap()
+{
+    return 1;
+}
+
+
+YACC code
+%{
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct node
+{
+    char op;
+    int val;
+    struct node *left, *right;
+} node;
+
+node *mknode(char op, int val, node *l, node *r)
+{
+    node *temp = (node *)malloc(sizeof(node));
+
+    temp->op = op;
+    temp->val = val;
+    temp->left = l;
+    temp->right = r;
+
+    return temp;
+}
+
+void preorder(node *root)
+{
+    if (root)
+    {
+        if (root->op == 'N')
+            printf("%d ", root->val);
+        else
+            printf("%c ", root->op);
+
+        preorder(root->left);
+        preorder(root->right);
+    }
+}
+
+node *root;
+
+int yylex();
+void yyerror(char *s);
+%}
+
+%union
+{
+    int num;
+    node *ptr;
+}
+
+%token <num> NUM
+%type <ptr> E
+
+%left '+' '-'
+%left '*' '/'
+
+%%
+
+S : E '\n'
+    {
+        root = $1;
+        printf("Preorder AST: ");
+        preorder(root);
+        printf("\n");
+    }
+    ;
+
+E : E '+' E
+    {
+        $$ = mknode('+', 0, $1, $3);
+    }
+  | E '-' E
+    {
+        $$ = mknode('-', 0, $1, $3);
+    }
+  | E '*' E
+    {
+        $$ = mknode('*', 0, $1, $3);
+    }
+  | E '/' E
+    {
+        $$ = mknode('/', 0, $1, $3);
+    }
+  | '(' E ')'
+    {
+        $$ = $2;
+    }
+  | NUM
+    {
+        $$ = mknode('N', $1, NULL, NULL);
+    }
+  ;
+
+%%
+
+void yyerror(char *s)
+{
+    printf("Invalid Expression\n");
+}
+
+int main()
+{
+    printf("Enter Expression: ");
+    yyparse();
+
+    return 0;
+}
