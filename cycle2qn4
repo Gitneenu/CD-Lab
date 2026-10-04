@@ -1,0 +1,57 @@
+Program (calc.l)
+%{
+#include "y.tab.h"
+#include <stdlib.h>
+%}
+%%
+[0-9]+ {
+yylval = atoi(yytext);
+return NUM;
+}
+[ \t] ;
+\n return '\n';
+. return yytext[0];
+%%
+int yywrap()
+{
+return 1;
+}
+
+
+Program (calc.y):
+
+
+%{
+#include<stdio.h>
+#include<stdlib.h>
+int yylex();
+void yyerror(char *s);
+%}
+
+%token NUM
+%left '+' '-'
+%left '*' '/'
+%%
+line : expr '\n'
+{
+printf("Result = %d\n", $1);
+}
+;
+expr : expr '+' expr { $$ = $1 + $3; }
+| expr '-' expr { $$ = $1 - $3; }
+| expr '*' expr { $$ = $1 * $3; }
+| expr '/' expr { $$ = $1 / $3; }
+| '(' expr ')' { $$ = $2; }
+| NUM { $$ = $1; }
+;
+%%
+void yyerror(char *s)
+{
+printf("Invalid Expression\n");
+}
+int main()
+{
+printf("Enter Arithmetic Expression: ");
+yyparse();
+return 0;
+}
