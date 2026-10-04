@@ -1,0 +1,27 @@
+%{
+#include <stdio.h>
+%}
+
+%%
+[a-zA-Z0-9]*nira[a-zA-Z0-9]*   { printf("%s---Rejected\n", yytext); }
+[a-zA-Z0-9]*NIRA[a-zA-Z0-9]*   { printf("%s---Rejected\n", yytext); }
+[a-zA-Z0-9]*   { printf("%s---Accepted\n", yytext); }
+%%
+int yywrap()
+{
+  return 1;
+}
+
+int main() {
+    printf("Enter string\n");
+
+    yylex();
+    return 0;
+}
+
+
+nano pro1.l
+     ctrl+o   enter     ctrl+x
+lex pro1.l(This generates the c program lex.yy.c)
+gcc lex.yy.c  -o pro1
+./pro1
