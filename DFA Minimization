@@ -1,0 +1,286 @@
+#include <stdio.h>
+
+#define MAX 20
+
+int main()
+{
+    int n, m;
+    int trans[MAX][MAX];
+    int final[MAX];
+    int reachable[MAX] = {0};
+    int mark[MAX][MAX] = {0};
+    int class[MAX];
+
+    char symbols[MAX];
+
+    /* ---------------- INPUT ---------------- */
+
+    printf("Enter number of states: ");
+    scanf("%d", &n);
+
+    printf("Enter number of input symbols: ");
+    scanf("%d", &m);
+
+    printf("Enter input symbols:\n");
+    for (int i = 0; i < m; i++)
+        scanf(" %c", &symbols[i]);
+
+    printf("\nEnter transition table:\n");
+    printf("States are numbered from 0 to %d\n", n - 1);
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("Transitions from q%d:\n", i);
+
+        for (int j = 0; j < m; j++)
+        {
+            printf("  on %c -> ", symbols[j]);
+            scanf("%d", &trans[i][j]);
+        }
+    }
+
+    printf("\nEnter 1 for final state, 0 for non-final state:\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        printf("q%d: ", i);
+        scanf("%d", &final[i]);
+    }
+
+    /* ---------------- FIND REACHABLE STATES ---------------- */
+
+    reachable[0] = 1;   // q0 is the initial state
+
+    int changed = 1;
+
+    while (changed)
+    {
+        changed = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (reachable[i])
+            {
+                for (int j = 0; j < m; j++)
+                {
+                    int next = trans[i][j];
+
+                    if (!reachable[next])
+                    {
+                        reachable[next] = 1;
+                        changed = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    printf("\nReachable states:\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        if (reachable[i])
+            printf("q%d ", i);
+    }
+
+    printf("\n");
+
+    /* ---------------- MARK FINAL/NON-FINAL PAIRS ---------------- */
+
+    for (int i = 0; i < n; i++)
+    {
+        if (!reachable[i])
+            continue;
+
+        for (int j = i + 1; j < n; j++)
+        {
+            if (!reachable[j])
+                continue;
+
+            if (final[i] != final[j])
+            {
+                mark[i][j] = 1;
+            }
+        }
+    }
+
+    /* ---------------- TABLE FILLING ---------------- */
+
+    changed = 1;
+
+    while (changed)
+    {
+        changed = 0;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (!reachable[i])
+                continue;
+
+            for (int j = i + 1; j < n; j++)
+            {
+                if (!reachable[j])
+                    continue;
+
+                /* Already marked */
+                if (mark[i][j])
+                    continue;
+
+                for (int k = 0; k < m; k++)
+                {
+                    int a = trans[i][k];
+                    int b = trans[j][k];
+
+                    if (a == b)
+                        continue;
+
+                    int x = (a < b) ? a : b;
+                    int y = (a < b) ? b : a;
+
+                    if (mark[x][y])
+                    {
+                        mark[i][j] = 1;
+                        changed = 1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    /* ---------------- PRINT EQUIVALENT STATES ---------------- */
+
+    printf("\nEquivalent States:\n");
+
+    int found = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        if (!reachable[i])
+            continue;
+
+        for (int j = i + 1; j < n; j++)
+        {
+            if (!reachable[j])
+                continue;
+
+            if (!mark[i][j])
+            {
+                printf("q%d and q%d\n", i, j);
+                found = 1;
+            }
+        }
+    }
+
+    if (!found)
+        printf("No equivalent states.\n");
+
+    /* ---------------- FORM EQUIVALENCE CLASSES ---------------- */
+
+    for (int i = 0; i < n; i++)
+        class[i] = -1;
+
+    int classCount = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        if (!reachable[i])
+            continue;
+
+        if (class[i] != -1)
+            continue;
+
+        class[i] = classCount;
+
+        for (int j = i + 1; j < n; j++)
+        {
+            if (!reachable[j])
+                continue;
+
+            if (!mark[i][j])
+            {
+                class[j] = classCount;
+            }
+        }
+
+        classCount++;
+    }
+
+    /* ---------------- PRINT EQUIVALENCE CLASSES ---------------- */
+
+    printf("\nEquivalence Classes:\n");
+
+    for (int c = 0; c < classCount; c++)
+    {
+        printf("A%d = { ", c);
+
+        for (int i = 0; i < n; i++)
+        {
+            if (class[i] == c)
+                printf("q%d ", i);
+        }
+
+        printf("}\n");
+    }
+
+    /* ---------------- CONSTRUCT MINIMIZED DFA ---------------- */
+
+    int minTrans[MAX][MAX];
+    int minFinal[MAX];
+
+    for (int c = 0; c < classCount; c++)
+    {
+        int representative = -1;
+
+        /* Find representative state */
+        for (int i = 0; i < n; i++)
+        {
+            if (class[i] == c)
+            {
+                representative = i;
+                break;
+            }
+        }
+
+        /* Final status of the class */
+        minFinal[c] = final[representative];
+
+        /* Transitions */
+        for (int j = 0; j < m; j++)
+        {
+            int nextState = trans[representative][j];
+
+            minTrans[c][j] = class[nextState];
+        }
+    }
+
+    /* ---------------- PRINT MINIMIZED DFA ---------------- */
+
+    printf("\nMinimized DFA:\n\n");
+
+    printf("State\t");
+
+    for (int j = 0; j < m; j++)
+        printf("%c\t", symbols[j]);
+
+    printf("Final\n");
+
+    for (int c = 0; c < classCount; c++)
+    {
+        printf("A%d\t", c);
+
+        for (int j = 0; j < m; j++)
+        {
+            printf("A%d\t", minTrans[c][j]);
+        }
+
+        if (minFinal[c])
+            printf("Yes");
+        else
+            printf("No");
+
+        printf("\n");
+    }
+
+    return 0;
+}
