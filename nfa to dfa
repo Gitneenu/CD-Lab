@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 10
+
+int main()
+{
+    int n, m;
+
+    printf("Enter number of NFA states: ");
+    scanf("%d", &n);
+
+    printf("Enter number of input symbols: ");
+    scanf("%d", &m);
+
+    char symbols[MAX];
+
+    printf("Enter input symbols:\n");
+
+    for (int i = 0; i < m; i++)
+    {
+        scanf(" %c", &symbols[i]);
+    }
+
+    int trans[MAX][MAX];
+
+    printf("Enter NFA transition table (bitmask values):\n");
+    printf("Example: If A->{A,C}, enter 5 (101 in binary).\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < m; j++)
+        {
+            scanf("%d", &trans[i][j]);
+        }
+    }
+
+    int dfaStates[100];
+
+    int front = 0;
+    int rear = 0;
+
+    dfaStates[rear++] = 1;   // Start state = {A}
+
+    printf("\nEquivalent DFA:\n");
+
+    while (front < rear)
+    {
+        int current = dfaStates[front++];
+
+        printf("{ ");
+
+        for (int i = 0; i < n; i++)
+        {
+            if (current & (1 << i))
+            {
+                printf("%c ", 'A' + i);
+            }
+        }
+
+        printf("}");
+
+        for (int s = 0; s < m; s++)
+        {
+            int next = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                if (current & (1 << i))
+                {
+                    next |= trans[i][s];
+                }
+            }
+
+            printf(" --%c--> { ", symbols[s]);
+
+            for (int i = 0; i < n; i++)
+            {
+                if (next & (1 << i))
+                {
+                    printf("%c ", 'A' + i);
+                }
+            }
+
+            printf("}");
+
+            int found = 0;
+
+            for (int i = 0; i < rear; i++)
+            {
+                if (dfaStates[i] == next)
+                {
+                    found = 1;
+                }
+            }
+
+            if (!found)
+            {
+                dfaStates[rear++] = next;
+            }
+        }
+
+        printf("\n");
+    }
+
+    return 0;
+}
