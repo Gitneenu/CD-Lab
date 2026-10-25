@@ -91,3 +91,8 @@ void main()
 	}
 	
 }
+
+
+
+
+Try with (i+i)*i
