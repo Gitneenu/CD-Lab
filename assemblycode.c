@@ -53,3 +53,10 @@ void main()
 		}
 	}
 }
+
+
+
+3
+a = b + c
+t1 = a - d
+goto L1
