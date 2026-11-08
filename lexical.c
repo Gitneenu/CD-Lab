@@ -2,13 +2,12 @@
 #include <string.h>
 #include <ctype.h>
 
-int iskeyword(char wor[])
+int iskeyword(char word[])
 {
-	char *k[] = {"int","float","char","void","if","else","for","while","return"};
-	int n=9,j;
-	for (j=0;j<n;j++)
+	char *k[]={"int","float","char","void","if","else","for","while","return"};
+	for(int i=0;i<9;i++)
 	{
-		if (strcmp(k[j],wor)==0)
+		if(strcmp(k[i],word)==0)
 		{
 			return 1;
 		}
@@ -18,16 +17,19 @@ int iskeyword(char wor[])
 
 void main()
 {
-	char str[1000],word[50],line[400];
+	char str[1000],line[500],word[300];
 	int i=0,j;
-	
-	while(i<999)
+	while (i<1000)
 	{
-		if (fgets(line,sizeof(line),stdin)==NULL)
+		if(fgets(line,sizeof(line),stdin)==NULL)
 		{
 			break;
 		}
-		if (strcmp(line,"END\n")==0||strcmp(line,"END")==0)
+		if(strcmp(line,"END\n")==0 || strcmp(line,"END")==0)
+		{
+			break;
+		}
+		if (strlen(line)>1000-i)
 		{
 			break;
 		}
@@ -38,52 +40,52 @@ void main()
 	i=0;
 	while(str[i]!='\0')
 	{
-		if (str[i]==' '||str[i]=='\t'||str[i]=='\n')
+		if(str[i]==' '||str[i]=='\t' ||str[i]=='\n')
 		{
 			i++;
 			continue;
 		}
-		
-		if (isalpha(str[i]))
+		if(isalpha(str[i]) || str[i]=='_')
 		{
 			j=0;
-			while(isalnum(str[i]))
+			while(isalnum(str[i]) ||str[i]=='_')
 			{
-				word[j++]=str[i++];
+				word[j++]=str[i];
+				i++;
 			}
 			word[j]='\0';
-			if (iskeyword(word))
+					
+			if(iskeyword(word))
 			{
-				printf("%s: Keyword\n",word);
+				printf("Keyword %s",word);
 			}
 			else
 			{
-				printf("%s: Identifier\n",word);
+				printf("Identifier %s",word);
 			}
-			i++;
-			
 		}
-		else if(isdigit(str[i]))
+		else if(isdigit((unsigned char)str[i]))
 		{
-			while(isdigit(str[i]))
+			j=0;
+			while(isdigit((unsigned char)str[i]))
 			{
-				putchar(str[i]);
+				word[j++]=str[i];
 				i++;
 			}
-			printf(":Number\n");
+			word[j]='\0';
+			printf("Number: %s",word);
 		}
-		else if(strchr("+-*/%<>",str[i]))
+		else if(strchr("+-*/%=<>!&|",str[i]))
 		{
-			printf("%c: Operator\n",str[i]);
+			printf("Operator: %c",str[i]);
 			i++;
 		}
-		else if(strchr(";,{}[]",str[i]))
+		else if(strchr(";,(){}[]",str[i]))
 		{
-			printf("%c Special Symbol\n",str[i]);
+			printf("Special Symbols: %c",str[i]);
 			i++;
 		}
-		else
-		{
+		else{
 			i++;
 		}
 	}
