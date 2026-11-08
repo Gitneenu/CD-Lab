@@ -1,0 +1,159 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX 20
+int nostates,nosym,notrans,nofinal;
+char states[MAX][MAX],sym[MAX][MAX],from[MAX][MAX],input[MAX][MAX],to[MAX][MAX];
+int final[MAX],visited[MAX],newfinal[MAX];
+char temp[MAX];
+int closure[MAX][MAX];
+
+int get_index(char state[])
+{
+	for(int i=0;i<nostates;i++)
+	{
+		if(strcmp(states[i],state)==0)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void dfs(int sto)
+{
+	visited[sto]=1;
+	for(int i=0;i<notrans;i++)
+	{
+		if(strcmp(from[i],states[sto])==0 && strcmp(input[i],"e")==0)
+		{
+			int pro=get_index(to[i]);
+			if (pro!=-1 && !visited[pro])
+			{
+				dfs(pro);
+			}
+		}
+	}
+}
+
+void compclosure()
+{
+	for(int i=0;i<nostates;i++)
+	{
+		memset(visited,0,sizeof(visited));
+		dfs(i);
+		for(int j=0;j<nostates;j++)
+		{
+			closure[i][j]=visited[j];
+		}
+	}
+	
+}
+
+void main()
+{
+	printf("Enter number of states\n");
+	scanf("%d",&nostates);
+	
+	printf("Enter states\n");
+	for(int i=0;i<nostates;i++)
+	{
+		scanf("%s",states[i]);
+	}
+	
+	printf("Enter number of symbols\n");
+	scanf("%d",&nosym);
+	
+	printf("Enter symbols\n");
+	for(int i=0;i<nosym;i++)
+	{
+		scanf("%s",sym[i]);
+	}
+	
+	printf("Enter number of transactions\n");
+	scanf("%d",&notrans);
+	
+	printf("Enter transactions\n");
+	for(int i=0;i<notrans;i++)
+	{
+		scanf("%s %s %s",from[i],input[i],to[i]);
+	}
+	
+	printf("Enter number of final states\n");
+	scanf("%d",&nofinal);
+	
+	printf("Enter final states\n");
+	for(int i=0;i<nofinal;i++)
+	{
+		scanf("%s",temp);
+		int idx=get_index(temp);
+		final[idx]=1;
+	}
+	
+	compclosure();
+	for(int i=0;i<nostates;i++)
+	{
+		for(int j=0;j<nosym;j++)
+		{
+			int printed[MAX]={0};
+			printf("%s [%s] = {",states[i],sym[j]);
+			for(int k=0;k<nostates;k++)
+			{
+				if(!closure[i][k])
+				{
+					continue;
+				}
+				
+				for(int m=0;m<notrans;m++)
+				{
+					if(strcmp(from[m],states[k])==0 && strcmp(input[m],sym[j])==0)
+					{
+						int idx=get_index(to[m]);
+						for(int n=0;n<nostates;n++)
+						{
+							if(closure[idx][n] && !printed[n])
+							{
+								printf("%s,", states[n]);
+								printed[n]=1;
+							}
+						}
+					}
+				}
+				
+			}
+			int empty=1;
+			for(int s=0;s<nostates;s++)
+			{
+				if(printed[s])
+				{
+					empty=0;
+					break;
+				}
+			}
+			if(empty)
+			{
+				printf("None");
+			}
+			printf("}\n");
+		}
+	}
+	for(int i=0;i<nostates;i++)
+	{
+		for(int j=0;j<nostates;j++)
+		{
+			if (closure[i][j] && final[j])
+			{
+				newfinal[i]=1;
+				break;
+			}
+		}
+	}
+	printf("Final States  ");
+	for(int i=0;i<nostates;i++)
+	{
+		if(newfinal[i])
+		{
+			printf("%s ",states[i]);
+		}
+	}
+}
