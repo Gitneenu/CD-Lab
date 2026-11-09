@@ -1,23 +1,28 @@
-LEX FILE
 %{
 #include "y.tab.h"
 %}
 
 %%
+
 "for"                           return FOR;
+
 [a-zA-Z_][a-zA-Z0-9_]*          return ID;
 [0-9]+                          return NUM;
 
 "++"                            return INC;
 "--"                            return DEC;
+
 "<="                            return LE;
 ">="                            return GE;
 "=="                            return EQ;
 "!="                            return NE;
 
-[<>=;(){}+\-*/]                return yytext[0];
+[<>=;(){}+\-*/]                 return yytext[0];
+
 [ \t\n]                         ;
+
 .                               return yytext[0];
+
 %%
 
 int yywrap()
@@ -25,53 +30,71 @@ int yywrap()
     return 1;
 }
 
-YACC FILE
+
 %{
 #include <stdio.h>
-#include <stdlib.h>
 
-int yylex();
+int yylex(void);
 void yyerror(char *s);
 %}
 
-%token FOR ID NUM INC DEC LE GE EQ NE
+%token FOR ID NUM LE GE EQ NE INC DEC
+
+%left '+' '-'
+%left '*' '/'
 
 %%
 
-S : FOR '(' ASSIGN ';' COND ';' UPDATE ')' '{' '}'
+stmt:
+    FOR '(' init ';' cond ';' upd ')' '{' '}'
     {
-        printf("Valid FOR Statement\n");
+        printf("Valid FOR statement\n");
     }
     ;
 
-ASSIGN : ID '=' NUM
-       | ID '=' ID
-       ;
+init:
+    ID '=' expr
+    ;
 
-COND : ID '<' NUM
-     | ID '>' NUM
-     | ID LE NUM
-     | ID GE NUM
-     | ID EQ NUM
-     | ID NE NUM
-     ;
+cond:
+    expr relop expr
+    ;
 
-UPDATE : ID INC
-       | ID DEC
-       | ID '=' ID '+' NUM
-       | ID '=' ID '-' NUM
-       ;
+relop:
+    '<'
+    | '>'
+    | LE
+    | GE
+    | EQ
+    | NE
+    ;
+
+upd:
+    ID INC
+    | ID DEC
+    | ID '=' expr
+    ;
+
+expr:
+    expr '+' expr
+    | expr '-' expr
+    | expr '*' expr
+    | expr '/' expr
+    | '(' expr ')'
+    | ID
+    | NUM
+    ;
 
 %%
 
 void yyerror(char *s)
 {
-    printf("Invalid FOR Statement\n");
+    printf("Invalid FOR statement\n");
 }
 
 int main()
 {
-    printf("Enter FOR Statement:\n");
+    printf("Enter FOR statement:\n");
     yyparse();
     return 0;
 }
