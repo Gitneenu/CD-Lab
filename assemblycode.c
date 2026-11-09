@@ -1,62 +1,108 @@
 #include <stdio.h>
 #include <string.h>
 
-void main()
+int main()
 {
-	int n;
-	char line[100];
-	printf("Enter number of three adresss code instructions\n");
-	scanf("%d",&n);
-	getchar();
-	
-	char result[50],op1[50],op2[50],op;
-	
-	for(int i=0;i<n;i++)
-	{
-		fgets(line,sizeof(line),stdin);
-		if (strstr(line,"GOTO")!=NULL)
-		{
-			char label[40];
-			sscanf(line, "GOTO %s",label);
-			printf("JUMP %s\n",label);
-		}
-		else if(sscanf(line, "%s = %s %c %s",result,op1,&op,op2)==4)
-		{
-			switch(op)
-			{
-				case '+':
-					printf("MOV AX %s\n",op1);
-					printf("ADD AX %s\n",op2);
-					printf("MOV %s AX\n",result);
-					break;
-					
-				case '-':
-					printf("MOV AX %s\n",op1);
-					printf("SUB AX %s\n",op2);
-					printf("MOV %s AX\n",result);
-					break;
-					
-				case '*':
-					printf("MOV AX %s\n",op1);
-					printf("MUL AX %s\n",op2);
-					printf("MOV %s AX\n",result);
-					break;
-				
-				default:
-					printf("Invalid operation\n");
-			}
-		}
-		else if(sscanf(line,"%s=%s",result,op1)==2)
-		{
-			printf("MOV AX %s",op1);
-			printf("MOV %s AX",result);
-		}
-	}
+    char line[100];
+    char a[20], b[20], c[20], op[5], label[20];
+    int n;
+
+    printf("Enter number of instructions: ");
+    scanf("%d", &n);
+    getchar();
+
+    printf("Enter TAC:\n");
+
+    for (int i = 0; i < n; i++)
+    {
+        fgets(line, sizeof(line), stdin);
+
+        // Conditional jump
+        if (sscanf(line, "if %19s %4s %19s goto %19s",
+                   a, op, b, label) == 4)
+        {
+            printf("MOV AX,%s\n", a);
+            printf("CMP AX,%s\n", b);
+
+            if (strcmp(op, "<") == 0)
+                printf("JL %s\n", label);
+
+            else if (strcmp(op, ">") == 0)
+                printf("JG %s\n", label);
+
+            else if (strcmp(op, "==") == 0)
+                printf("JE %s\n", label);
+
+            else if (strcmp(op, "!=") == 0)
+                printf("JNE %s\n", label);
+
+            else if (strcmp(op, "<=") == 0)
+                printf("JLE %s\n", label);
+
+            else if (strcmp(op, ">=") == 0)
+                printf("JGE %s\n", label);
+
+            else
+                printf("Invalid relational operator\n");
+        }
+
+        // Unconditional jump
+        else if (sscanf(line, "goto %19s", label) == 1)
+        {
+            printf("JMP %s\n", label);
+        }
+
+        // Arithmetic operation
+        else if (sscanf(line, "%19s = %19s %4s %19s",
+                        a, b, op, c) == 4)
+        {
+            printf("MOV AX,%s\n", b);
+            printf("MOV BX,%s\n", c);
+
+            if (strcmp(op, "+") == 0)
+                printf("ADD AX,BX\n");
+
+            else if (strcmp(op, "-") == 0)
+                printf("SUB AX,BX\n");
+
+            else if (strcmp(op, "*") == 0)
+            {
+                printf("MUL BX\n");
+            }
+
+            else if (strcmp(op, "/") == 0)
+            {
+                printf("XOR DX,DX\n");
+                printf("DIV BX\n");
+            }
+
+            else
+            {
+                printf("Invalid arithmetic operator\n");
+                continue;
+            }
+
+            printf("MOV %s,AX\n", a);
+        }
+
+        // Simple assignment
+        else if (sscanf(line, "%19s = %19s", a, b) == 2)
+        {
+            printf("MOV AX,%s\n", b);
+            printf("MOV %s,AX\n", a);
+        }
+
+        // Label
+        else if (sscanf(line, "%19[^:]:", label) == 1)
+        {
+            printf("%s:\n", label);
+        }
+
+        else
+        {
+            printf("Invalid TAC instruction\n");
+        }
+    }
+
+    return 0;
 }
-
-
-
-3
-a = b + c
-t1 = a - d
-goto L1
