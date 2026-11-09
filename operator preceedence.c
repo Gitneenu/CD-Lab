@@ -6,14 +6,14 @@ int top = -1, ip = 0;
 
 char table[8][8] = {
 /*       +    -    *    /    (    )    i    $ */
-/* + */ {'>','>','<','<','<','>','<','>'},
-/* - */ {'>','>','<','<','<','>','<','>'},
-/* * */ {'>','>','>','>','<','>','<','>'},
-/* / */ {'>','>','>','>','<','>','<','>'},
-/* ( */ {'<','<','<','<','<','=','<',' '},
-/* ) */ {'>','>','>','>',' ','>',' ','>'},
-/* i */ {'>','>','>','>',' ','>',' ','>'},
-/* $ */ {'<','<','<','<','<',' ','<',' '}
+ /* + */ {'>','>','<','<','<','>','<','>'},
+ /* - */ {'>','>','<','<','<','>','<','>'},
+ /* * */ {'>','>','>','>','<','>','<','>'},
+ /* / */ {'>','>','>','>','<','>','<','>'},
+ /* ( */ {'<','<','<','<','<','=','<',' '},
+ /* ) */ {'>','>','>','>',' ','>',' ','>'},
+ /* i */ {'>','>','>','>',' ','>',' ','>'},
+ /* $ */ {'<','<','<','<','<',' ','<',' '}
 };
 
 int indexOf(char c)
@@ -32,22 +32,23 @@ int indexOf(char c)
     return -1;
 }
 
-void display()
+void display(const char *action)
 {
     int i;
 
     for(i = 0; i <= top; i++)
         printf("%c", stack[i]);
 
-    printf("\t\t%s\n", input + ip);
+    printf("\t\t%s\t\t%s\n", input + ip, action);
 }
 
-int reduce()
+int reduce(char *action)
 {
     /* i -> E */
     if(top >= 0 && stack[top] == 'i')
     {
         stack[top] = 'E';
+        strcpy(action, "Reduce i -> E");
         return 1;
     }
 
@@ -59,10 +60,11 @@ int reduce()
     {
         top -= 2;
         stack[top] = 'E';
+        strcpy(action, "Reduce (E) -> E");
         return 1;
     }
 
-    /* E+E -> E, E-E -> E, E*E -> E, E/E -> E */
+    /* E op E -> E */
     if(top >= 2 &&
        stack[top] == 'E' &&
        stack[top-2] == 'E' &&
@@ -71,8 +73,12 @@ int reduce()
         stack[top-1] == '*' ||
         stack[top-1] == '/'))
     {
+        char op = stack[top-1];
+
         top -= 2;
         stack[top] = 'E';
+
+        sprintf(action, "Reduce E%cE -> E", op);
         return 1;
     }
 
@@ -83,6 +89,7 @@ int main()
 {
     int i, row, col;
     char a, b, relation;
+    char action[30];
 
     printf("Enter expression (use i for identifier): ");
     scanf("%49s", input);
@@ -97,8 +104,8 @@ int main()
 
     stack[++top] = '$';
 
-    printf("\nSTACK\t\tINPUT\n");
-    display();
+    printf("\nSTACK\t\tINPUT\t\tACTION\n");
+    display("Initialize");
 
     while(1)
     {
@@ -109,19 +116,20 @@ int main()
 
         if(i < 0)
         {
-            printf("Rejected\n");
+            printf("\nRejected\n");
             break;
         }
 
         a = stack[i];
         b = input[ip];
 
-        /* Accept when stack is $E and input is $ */
+        /* Accept condition */
         if(top == 1 &&
            stack[0] == '$' &&
            stack[1] == 'E' &&
            b == '$')
         {
+            display("Accept");
             printf("\nAccepted\n");
             break;
         }
@@ -147,17 +155,19 @@ int main()
 
             stack[++top] = b;
             ip++;
-            display();
+
+            sprintf(action, "Shift %c", b);
+            display(action);
         }
         else if(relation == '>')
         {
-            if(!reduce())
+            if(!reduce(action))
             {
                 printf("\nRejected\n");
                 break;
             }
 
-            display();
+            display(action);
         }
         else
         {
