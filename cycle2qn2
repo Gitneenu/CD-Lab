@@ -3,18 +3,18 @@
 %}
 
 %%
-[a-zA-Z0-9]*nira[a-zA-Z0-9]*   { printf("%s---Rejected\n", yytext); }
-[a-zA-Z0-9]*NIRA[a-zA-Z0-9]*   { printf("%s---Rejected\n", yytext); }
-[a-zA-Z0-9]*   { printf("%s---Accepted\n", yytext); }
+[a-zA-Z0-9]*[nN][iI][rR][aA][a-zA-Z0-9]*  { printf("%s---Rejected\n", yytext); }
+[a-zA-Z0-9]*                              { printf("%s---Accepted\n", yytext); }
 %%
+
 int yywrap()
 {
-  return 1;
+    return 1;
 }
 
-int main() {
+int main()
+{
     printf("Enter string\n");
-
     yylex();
     return 0;
 }
