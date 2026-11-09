@@ -1,47 +1,51 @@
-Program (var.l)
+var.l
 
 %{
 #include "y.tab.h"
 %}
+
 %%
-[a-zA-Z][a-zA-Z0-9]* return ID;
-\n return '\n';
-[ \t] ;
-. return yytext[0];
+[a-zA-Z][a-zA-Z0-9]*    return ID;
+\n                      return '\n';
+[ \t]                   ;
+.                       return yytext[0];
 %%
+
 int yywrap()
 {
-  return 1;
+    return 1;
 }
 
-
-Program (var.y)
-
+var.y
 
 %{
-#include<stdio.h>
-#include<stdlib.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 int yylex();
 void yyerror(char *s);
 %}
+
 %token ID
+
+%%
+S : ID '\n'
+    {
+        printf("Valid Variable\n");
+    }
+  ;
 %%
 
-S : ID '\n'
-{
-printf("Valid Variable\n");
-}
-;
-%%
 void yyerror(char *s)
 {
-  printf("Invalid Variable\n");
+    printf("Invalid Variable\n");
 }
+
 int main()
 {
-  printf("Enter Variable: ");
-  yyparse();
-  return 0;
+    printf("Enter Variable: ");
+    yyparse();
+    return 0;
 }
 
 
